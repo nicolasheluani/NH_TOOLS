@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <toolshelf name="NH_Tools" label="NH_Tools">
+    <memberTool name="bkgX"/>
+    <memberTool name="modeX"/>
+    <memberTool name="xNamer"/>
+    <memberTool name="centerNode"/>
+  </toolshelf>
+
+  <tool name="xNamer" label="X Namer" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[prefix = "XX_"
+for node in hou.selectedNodes ():
+    name = node.name ()
+    if name[0:3] != prefix:
+        node.setName (prefix + name)
+        node.setColor(hou.Color((0,0,0)))
+    if name[0:3] == prefix:
+        node.setName (name[3:])
+        node.setColor(hou.Color((0,1,0)))]]></script>
+  </tool>
+
+  <tool name="modeX" label="modeX" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[curr = hou.updateModeSetting()
+#print (curr)
+if curr != hou.updateMode.Manual :
+    hou.setUpdateMode(hou.updateMode.Manual)
+if curr == hou.updateMode.Manual :
+    hou.setUpdateMode(hou.updateMode.AutoUpdate)]]></script>
+  </tool>
+
+  <tool name="bkgX" label="BkgX" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[import toolutils
+scene_viewer = toolutils.sceneViewer()
+viewports = scene_viewer.viewports()
+#print(viewports)
+viewport = viewports[-1]
+viewportSettings = viewport.settings()
+currColor = viewportSettings.colorScheme()
+for vp in viewports:
+    if currColor == hou.viewportColorScheme.Dark :
+        vp.settings().setColorScheme(hou.viewportColorScheme.Light)
+    if currColor == hou.viewportColorScheme.Light :
+        vp.settings().setColorScheme(hou.viewportColorScheme.Grey)
+    if currColor == hou.viewportColorScheme.Grey :
+        vp.settings().setColorScheme(hou.viewportColorScheme.DarkGrey)
+    if currColor == hou.viewportColorScheme.DarkGrey :
+        vp.settings().setColorScheme(hou.viewportColorScheme.Dark)]]></script>
+  </tool>
+
+  <tool name="centerNode" label="center Node" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[import hou
+
+def center_selected_sop_under_cursor():
+    # Get the active Houdini pane
+    pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    if pane is None:
+        print("No active Network Editor pane.")
+        return
+
+    # Get the selected SOP node
+    selected_nodes = hou.selectedNodes()
+    if not selected_nodes:
+        print("No SOP node selected.")
+        return
+
+    sop_nodeA = selected_nodes[0]
+
+    # Get the position of the SOP node in the network view
+    node_position = sop_nodeA.position()
+
+    # Get the current cursor position in the network view
+    cursor_position = pane.cursorPosition()
+
+    # Calculate the offset to center the SOP node under the cursor
+    offset = cursor_position - node_position
+
+    # Set the position of the SOP node to center it under the cursor
+    # new_node_position = node_position + offset
+    # sop_nodeA.setPosition(new_node_position)
+    
+    #Set the new position for each node in the selected_nodes list
+    for node in selected_nodes:
+        new_node_position = node.position() + offset
+        node.setPosition(new_node_position)
+
+# Run the function
+center_selected_sop_under_cursor()]]></script>
+  </tool>
+</shelfDocument>

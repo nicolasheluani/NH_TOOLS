@@ -1,0 +1,15 @@
+{
+    "enable": true,
+    "env": [
+        {
+            "NH_TOOLS": "C:/pathtoyournhtoolfolder"
+        },
+        {
+            "HOUDINI_PATH":
+            {
+                "value": "${NH_TOOLS}",
+                "method": "append"
+            }
+        }
+    ]
+}
