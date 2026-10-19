@@ -10,6 +10,7 @@
     <memberTool name="modeX"/>
     <memberTool name="xNamer"/>
     <memberTool name="centerNode"/>
+    <memberTool name="fetch_it"/>
   </toolshelf>
 
   <tool name="xNamer" label="X Namer" icon="PLASMA_App">
@@ -90,5 +91,66 @@ def center_selected_sop_under_cursor():
 
 # Run the function
 center_selected_sop_under_cursor()]]></script>
+  </tool>
+
+  <tool name="fetch_it" label="Fetch it" icon="PLASMA_App">
+    <script scriptType="python"><![CDATA[import hou
+
+def create_fetch_from_selection():
+    # Grab the current selection â treat it like a point selection in SOPs
+    selected = hou.selectedNodes()
+    if not selected:
+        print("No SOP node selected.")
+        return
+
+    src = selected[0]          # primary selected node becomes the source
+
+    # Determine where we are allowed to create the Fetch
+    # Prefer the network editorâs current context (pwd)
+    pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    parent = None
+    if pane is not None:
+        parent = pane.pwd()
+
+    # Fallback: use the parent of the selected node if it is already a COP context
+    if parent is None or parent.childTypeCategory() != hou.copNodeTypeCategory():
+        parent = src.parent()
+        if parent.childTypeCategory() != hou.copNodeTypeCategory():
+            hou.ui.displayMessage(
+                "Current network is not a Copernicus (COP) context.\n"
+                "Dive into a COP Network first.",
+                severity=hou.severityType.Error
+            )
+            return
+
+    # Create the Fetch node (internal name is simply "fetch")
+    desired_name = src.name() + "_F"
+    fetch = parent.createNode("fetch", node_name=desired_name)
+
+    # Position it relative to the selected node (or at origin if different network)
+    if src.parent() == parent:
+        # Same network â place it a bit to the right of the source
+        pos = src.position()
+        fetch.setPosition([pos[0] + 3.0, pos[1]])
+    else:
+        # Different network â just place it at a reasonable default
+        fetch.moveToGoodPosition()
+
+    # Set the COP Path parameter
+    # The parm name on the Fetch COP is "coppath"
+    fetch.parm("coppath").set(src.path())
+
+    # Optional but very useful: push the button that matches the source outputs
+    # (this populates the Outputs multiparm correctly)
+    set_ports = fetch.parm("setports")
+    if set_ports is not None:
+        set_ports.pressButton()
+
+    # Select the new Fetch so the user can immediately continue working
+        fetch.setSelected(True, clear_all_selected=True)
+        fetch.setDisplayFlag(True)
+
+# Entry point for the shelf tool
+create_fetch_from_selection()]]></script>
   </tool>
 </shelfDocument>
