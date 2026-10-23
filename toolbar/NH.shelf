@@ -94,6 +94,7 @@ center_selected_sop_under_cursor()]]></script>
   </tool>
 
   <tool name="fetch_it" label="Fetch it" icon="PLASMA_App">
+    <helpText><![CDATA[Creates a fetch node of the current selected node in coppernicus]]></helpText>
     <script scriptType="python"><![CDATA[import hou
 
 def create_fetch_from_selection():
